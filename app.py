@@ -9,8 +9,13 @@ API_URL = "https://api-inference.huggingface.co/models/gpt2"
 headers = {"Authorization": f"Bearer {HF_API_KEY}"}
 
 def query(payload):
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
+        if response.status_code != 200:
+            return {"error": f"API error {response.status_code}: {response.text}"}
+        return response.json()
+    except Exception as e:
+        return {"error": str(e)}
 
 st.title("🍷 Responsible Drinking AI Advisor (Open AI Version)")
 
