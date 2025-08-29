@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Hugging Face API key and public model
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-MODEL = "stabilityai/stablelm-tuned-alpha-3b"
+MODEL = "bigscience/bloom-560m"
 
 def get_ai_advice(prompt):
     """Call Hugging Face Inference API"""
@@ -136,14 +136,4 @@ def home():
                 else:
                     status = "Dangerous level. Do NOT drive and consider stopping immediately."
 
-                hydration = f"Estimated BAC: {bac:.3f}. {status} Always hydrate with water between drinks."
-
-            except Exception as e:
-                hydration = f"Error in calculation: {str(e)}"
-
-    return render_template_string(HTML_PAGE, advice=advice, hydration=hydration)
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+                hydration = f"Estimated BAC: {bac:.3f}. {
