@@ -1,36 +1,13 @@
-from flask import Flask, request, jsonify, render_template_string
-import requests
+from flask import Flask, request, render_template_string
 import os
+import replicate
 
 app = Flask(__name__)
 
-# Hugging Face API key and public model
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-MODEL = "OpenAssistant/oasst-sft-1-pythia-12b"
-
-def get_ai_advice(prompt):
-    """Call Hugging Face Inference API"""
-    headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
-    payload = {"inputs": prompt}
-
-    response = requests.post(
-        f"https://api-inference.huggingface.co/models/{MODEL}",
-        headers=headers,
-        json=payload,
-    )
-
-    if response.status_code == 200:
-        result = response.json()
-        if isinstance(result, list) and "generated_text" in result[0]:
-            return result[0]["generated_text"]
-        elif isinstance(result, list):
-            return str(result[0])
-        elif "error" in result:
-            return f"Error: {result['error']}"
-        else:
-            return str(result)
-    else:
-        return f"HTTP Error {response.status_code}: {response.text}"
+# Initialize Replicate client
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+client = replicate.Client(api_token=REPLICATE_API_TOKEN)
+MODEL = "mistralai/mistral-7b-instruct"
 
 # HTML template
 HTML_PAGE = """
@@ -105,7 +82,7 @@ def home():
         weight = request.form.get("weight")
         gender = request.form.get("gender")
 
-        # --- AI Advisor using Hugging Face ---
+        # --- AI Advisor using Replicate ---
         if user_question:
             prompt = (
                 "You are a Responsible Drinking Advisor. "
@@ -114,7 +91,14 @@ def home():
                 "Provide tips about responsible drinking, local laws, and health.\n\n"
                 f"User Question: {user_question}"
             )
-            advice = get_ai_advice(prompt)
+            try:
+                output = client.run(
+                    MODEL,
+                    input={"prompt": prompt, "max_new_tokens": 250}
+                )
+                advice = output
+            except Exception as e:
+                advice = f"Error generating advice: {str(e)}"
 
         # --- BAC-lite Calculator ---
         if drinks and hours and weight and gender:
