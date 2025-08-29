@@ -1,15 +1,16 @@
 from flask import Flask, request, render_template_string
+from text_generation import Client
 import os
-import replicate
 
 app = Flask(__name__)
 
-# Initialize Replicate client
-REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
-client = replicate.Client(api_token=REPLICATE_API_TOKEN)
-MODEL = "mistralai/mistral-7b-instruct"
+# Use local LLM (quantized small model)
+# Replace with path to your model folder if downloaded manually
+MODEL_NAME = "TheBloke/guanaco-7B-GPTQ"
 
-# HTML template
+# Initialize text-generation client
+client = Client(MODEL_NAME)
+
 HTML_PAGE = """
 <!DOCTYPE html>
 <html>
@@ -82,7 +83,7 @@ def home():
         weight = request.form.get("weight")
         gender = request.form.get("gender")
 
-        # --- AI Advisor using Replicate ---
+        # --- AI Advisor ---
         if user_question:
             prompt = (
                 "You are a Responsible Drinking Advisor. "
@@ -92,11 +93,8 @@ def home():
                 f"User Question: {user_question}"
             )
             try:
-                output = client.run(
-                    MODEL,
-                    input={"prompt": prompt, "max_new_tokens": 250}
-                )
-                advice = output
+                output = client.generate(prompt, max_new_tokens=200)
+                advice = output.generations[0].text.strip()
             except Exception as e:
                 advice = f"Error generating advice: {str(e)}"
 
