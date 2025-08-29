@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import openai
 
-# Set OpenAI API key from environment variable
+# Use environment variable for API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.title("🍷 Responsible Drinking AI Advisor (OpenAI)")
@@ -11,7 +11,7 @@ user_input = st.text_input("Enter your drinking info (e.g., 'I had 3 beers' or '
 
 def get_advice(prompt):
     try:
-        # New 1.x ChatCompletion interface
+        # ✅ New 1.x ChatCompletion interface
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
