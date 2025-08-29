@@ -4,11 +4,10 @@ import os
 
 app = Flask(__name__)
 
-# Use local LLM (quantized small model)
-# Replace with path to your model folder if downloaded manually
-MODEL_NAME = "TheBloke/guanaco-7B-GPTQ"
+# --- Automatic model selection ---
+MODEL_NAME = "TheBloke/guanaco-7B-GPTQ"  # quantized, small enough for Render CPU
 
-# Initialize text-generation client
+# Initialize the client (local download)
 client = Client(MODEL_NAME)
 
 HTML_PAGE = """
