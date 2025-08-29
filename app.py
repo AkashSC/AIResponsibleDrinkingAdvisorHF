@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Hugging Face API key and public model
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-MODEL = "deepseek-ai/DeepSeek-V3-0324"
+MODEL = "bigscience/bloomz-560m"
 
 def get_ai_advice(prompt):
     """Call Hugging Face Inference API"""
