@@ -1,3 +1,6 @@
 flask
 gunicorn
-replicate
+torch
+transformers
+accelerate
+text-generation
