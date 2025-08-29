@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Hugging Face API key and public model
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-MODEL = "facebook/bart-large-cnn"
+MODEL = "OpenAssistant/oasst-sft-1-pythia-12b"
 
 def get_ai_advice(prompt):
     """Call Hugging Face Inference API"""
