@@ -4,7 +4,7 @@ import os
 
 # Hugging Face API Key (set in Render dashboard as env variable)
 HF_API_KEY = os.getenv("HF_API_KEY")
-API_URL = API_URL = "https://api-inference.huggingface.co/models/gpt2"
+API_URL = "https://api-inference.huggingface.co/models/gpt2"  # ✅ Fixed model
 
 headers = {"Authorization": f"Bearer {HF_API_KEY}"}
 
@@ -32,7 +32,6 @@ if st.button("Get Advice"):
         if "error" in raw_output:
             st.error(raw_output["error"])
         else:
-            # Hugging Face may return list or dict
             try:
                 text_out = raw_output[0]["generated_text"] if isinstance(raw_output, list) else str(raw_output)
             except Exception:
