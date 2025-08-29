@@ -1,13 +1,39 @@
 from flask import Flask, request, jsonify, render_template_string
-from openai import OpenAI
+import requests
 import os
 
 app = Flask(__name__)
 
-# Initialize OpenAI client (new API)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Hugging Face API key and model
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+MODEL = "tiiuae/falcon-7b-instruct"  # Change model if you want
 
-# HTML template for UI
+# Function to get AI advice from Hugging Face
+def get_ai_advice(prompt):
+    headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+    payload = {"inputs": prompt}
+
+    response = requests.post(
+        f"https://api-inference.huggingface.co/models/{MODEL}",
+        headers=headers,
+        json=payload,
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        # Hugging Face returns a list with 'generated_text'
+        if isinstance(result, list) and "generated_text" in result[0]:
+            return result[0]["generated_text"]
+        elif isinstance(result, list) and "generated_text" not in result[0]:
+            return str(result[0])
+        elif "error" in result:
+            return f"Error: {result['error']}"
+        else:
+            return str(result)
+    else:
+        return f"HTTP Error {response.status_code}: {response.text}"
+
+# HTML template
 HTML_PAGE = """
 <!DOCTYPE html>
 <html>
@@ -80,23 +106,16 @@ def home():
         weight = request.form.get("weight")
         gender = request.form.get("gender")
 
-        # --- AI Advisor ---
+        # --- AI Advisor using Hugging Face ---
         if user_question:
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": 
-                         "You are a Responsible Drinking Advisor. "
-                         "Encourage moderation, hydration, and safe behavior. "
-                         "Never promote binge drinking or unsafe alcohol use. "
-                         "Provide tips about responsible drinking, local laws, and health."},
-                        {"role": "user", "content": user_question}
-                    ]
-                )
-                advice = response.choices[0].message.content
-            except Exception as e:
-                advice = f"Error: {str(e)}"
+            prompt = (
+                "You are a Responsible Drinking Advisor. "
+                "Encourage moderation, hydration, and safe behavior. "
+                "Never promote binge drinking or unsafe alcohol use. "
+                "Provide tips about responsible drinking, local laws, and health.\n\n"
+                f"User Question: {user_question}"
+            )
+            advice = get_ai_advice(prompt)
 
         # --- BAC-lite Calculator ---
         if drinks and hours and weight and gender:
@@ -105,15 +124,10 @@ def home():
                 hours = int(hours)
                 weight = float(weight)
                 r = 0.73 if gender == "male" else 0.66
-
-                # Convert kg to lbs
                 weight_lbs = weight * 2.20462
-
-                # Widmark BAC formula
                 bac = (drinks * 14 * 5.14) / (weight_lbs * r) - 0.015 * hours
                 bac = max(bac, 0)
 
-                # Categorize BAC
                 if bac < 0.03:
                     status = "Minimal impairment."
                 elif bac < 0.06:
@@ -129,32 +143,6 @@ def home():
                 hydration = f"Error in calculation: {str(e)}"
 
     return render_template_string(HTML_PAGE, advice=advice, hydration=hydration)
-
-
-@app.route("/advisor", methods=["POST"])
-def advisor():
-    """API endpoint for JSON access"""
-    data = request.get_json(silent=True) or {}
-    user_question = data.get("question", "")
-
-    if not user_question:
-        return jsonify({"error": "No question provided"}), 400
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": 
-                 "You are a Responsible Drinking Advisor. "
-                 "Encourage moderation, hydration, and safe behavior. "
-                 "Never promote binge drinking or unsafe alcohol use. "
-                 "Provide tips about responsible drinking, local laws, and health."},
-                {"role": "user", "content": user_question}
-            ]
-        )
-        return jsonify({"advice": response.choices[0].message.content})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
