@@ -4,7 +4,7 @@ import os
 
 # Hugging Face API Key (set in Render dashboard as env variable)
 HF_API_KEY = os.getenv("HF_API_KEY")
-API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
+API_URL = API_URL = "https://api-inference.huggingface.co/models/gpt2"
 
 headers = {"Authorization": f"Bearer {HF_API_KEY}"}
 
