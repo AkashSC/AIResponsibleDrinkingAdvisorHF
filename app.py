@@ -1,32 +1,28 @@
-import streamlit as st
-import os
+from flask import Flask, request, jsonify
 import openai
+import os
 
+app = Flask(__name__)
+
+# Get API key from environment variable     
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-st.title("🍷 Responsible Drinking AI Advisor (OpenAI)")
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.json
+    prompt = data.get("prompt", "")
+    
+    if not prompt:
+        return jsonify({"error": "No prompt provided"}), 400
 
-user_input = st.text_input("Enter your drinking info (e.g., 'I had 3 beers' or 'I consumed 30% liquor'):")
-
-def get_advice(prompt):
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a responsible drinking AI advisor."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=150,
-            temperature=0.7
+            messages=[{"role": "user", "content": prompt}]
         )
-        return response.choices[0].message.content.strip()
+        return jsonify({"response": response.choices[0].message.content})
     except Exception as e:
-        return f"Error: {str(e)}"
+        return jsonify({"error": str(e)}), 500
 
-if st.button("Get Advice"):
-    if not openai.api_key:
-        st.error("No OpenAI API key found. Please set OPENAI_API_KEY in Render environment.")
-    else:
-        advice = get_advice(f"User consumed: {user_input}. Give safe and responsible drinking advice.")
-        st.write("### AI Advice:")
-        st.success(f"{advice}\n\n🚨 Remember: Never drink and drive. Stay hydrated and know your limits.")
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
