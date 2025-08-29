@@ -12,7 +12,7 @@ def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
-st.title("🍷 Responsible Drinking AI Advisor (HF Version)")
+st.title("🍷 Responsible Drinking AI Advisor (Open AI Version)")
 
 user_input = st.text_input("Ask your question about drinking responsibly:")
 
