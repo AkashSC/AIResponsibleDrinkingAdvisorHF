@@ -136,4 +136,14 @@ def home():
                 else:
                     status = "Dangerous level. Do NOT drive and consider stopping immediately."
 
-                hydration = f"Estimated BAC: {bac:.3f}. {
+                hydration = f"Estimated BAC: {bac:.3f}. {status} Always hydrate with water between drinks."
+
+            except Exception as e:
+                hydration = f"Error in calculation: {str(e)}"
+
+    return render_template_string(HTML_PAGE, advice=advice, hydration=hydration)
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
