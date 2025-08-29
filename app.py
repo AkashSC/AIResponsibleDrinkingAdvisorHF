@@ -4,12 +4,12 @@ import os
 
 app = Flask(__name__)
 
-# Hugging Face API key and model
+# Hugging Face API key and public model
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-MODEL = "tiiuae/falcon-7b-instruct"  # Change model if you want
+MODEL = "stabilityai/stablelm-tuned-alpha-3b"
 
-# Function to get AI advice from Hugging Face
 def get_ai_advice(prompt):
+    """Call Hugging Face Inference API"""
     headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
     payload = {"inputs": prompt}
 
@@ -21,10 +21,9 @@ def get_ai_advice(prompt):
 
     if response.status_code == 200:
         result = response.json()
-        # Hugging Face returns a list with 'generated_text'
         if isinstance(result, list) and "generated_text" in result[0]:
             return result[0]["generated_text"]
-        elif isinstance(result, list) and "generated_text" not in result[0]:
+        elif isinstance(result, list):
             return str(result[0])
         elif "error" in result:
             return f"Error: {result['error']}"
